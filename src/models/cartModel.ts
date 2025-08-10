@@ -3,14 +3,14 @@ import type { IProduct } from "./productModel.js";
 
 const CartStatusEnum = ["active", "completed"];
 
-export interface ICartItem extends Document {
-  product: IProduct;
+interface ICartItem {
+  product: mongoose.Types.ObjectId | IProduct | String;
   unitPrice: number;
   quantity: number;
 }
 
 export interface ICart extends Document {
-  userId: String;
+  userId: String | mongoose.Types.ObjectId;
   items: ICartItem[];
   totalAmount: number;
   status: "active" | "completed";
