@@ -1,9 +1,12 @@
+import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import userRouter from "./routes/userRouter.js";
 import productRouter from "./routes/productRouter.js";
 import cartRout from "./routes/cartRouter.js";
 // import cors from "cors";
+
+dotenv.config();
 
 const app = express();
 const port = 5000;
@@ -14,7 +17,7 @@ const port = 5000;
 app.use(express.json());
 
 mongoose
-  .connect("mongodb://localhost:27017/ecommerce")
+  .connect(process.env.url || "")
   .then(() => console.log("Connected!"))
   .catch((err) => console.log("Faild to connect", err));
 

@@ -82,5 +82,5 @@ export const login = async ({ email, password }: LoginParams) => {
 };
 
 const generateJWT = (data: any) => {
-  return jwt.sign(data, "Hussien");
+  return jwt.sign(data, process.env.JWT_secret || '');
 };
