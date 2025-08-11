@@ -90,7 +90,7 @@ export const updateQuantityInCart = async ({
   const existsInCart = cart.items.find(
     (p) => p.product.toString() === productId
   );
-  
+
   if (!existsInCart) {
     return "Error";
   }
@@ -110,18 +110,78 @@ export const updateQuantityInCart = async ({
   existsInCart.quantity = quantity;
   existsInCart.unitPrice = quantity * product.price;
 
-  const otherCartItems = cart.items.filter((p) => p.product.toString() !== productId);
+  const otherCartItems = cart.items.filter(
+    (p) => p.product.toString() !== productId
+  );
 
   let total = otherCartItems.reduce((sum, product) => {
     sum += product.quantity * product.unitPrice;
     return sum;
-  }, 0)
+  }, 0);
 
   total += existsInCart.quantity * existsInCart.unitPrice;
 
-  cart.totalAmount = total
+  cart.totalAmount = total;
 
   const updateCart = await cart.save();
 
-  return { data: updateCart, statusCode: 201}
+  return { data: updateCart, statusCode: 201 };
+};
+
+interface DeleteItemOfCart {
+  userId: string;
+  productId: any;
+}
+
+export const deleteItemOfCart = async ({
+  productId,
+  userId,
+}: DeleteItemOfCart) => {
+  const cart = await getActiveCartForUser({ userId });
+
+  const existsInCart = cart.items.find(
+    (p) => p.product.toString() === productId
+  );
+
+  if (!existsInCart) {
+    return "Error";
+  }
+  const product = await productModel.findById(productId);
+
+  if (!product) {
+    return "Please check the product";
+  }
+
+  const otherCartItems = cart.items.filter(
+    (p) => p.product.toString() !== productId
+  );
+
+  let total = otherCartItems.reduce((sum, product) => {
+    sum += product.quantity * product.unitPrice;
+    return sum;
+  }, 0);
+
+  cart.totalAmount = total;
+  cart.items = otherCartItems;
+
+  const deleteitem = await cart.save();
+
+  return { data: deleteitem, statusCode: 200}
+};
+interface DeleteAllItemsOfCart {
+  userId: string;
+}
+
+export const deleteAllItemsOfCart = async ({
+  userId,
+}: DeleteAllItemsOfCart) => {
+  const cart = await getActiveCartForUser({ userId });
+
+
+  cart.totalAmount = 0;
+  cart.items = [];
+
+  const deleteitem = await cart.save();
+
+  return { data: deleteitem, statusCode: 200}
 };
