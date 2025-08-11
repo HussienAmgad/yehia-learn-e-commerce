@@ -1,4 +1,5 @@
 import { cartModel } from "../models/cartModel.js";
+import { orderModel, type IOrderItem } from "../models/orderModel.js";
 import productModel from "../models/productModel.js";
 
 interface CreateCartForUser {
@@ -46,32 +47,32 @@ export const addItemToCart = async ({
   const product = await productModel.findById(productId);
 
   if (!product) {
-    return "Please check the product";
+    return { message: "Please check the product", statusCode: 404 };
   }
 
   if (existsInCart) {
     if (existsInCart.quantity + quantity > product.stock) {
       return {
         statusCode: 400,
-        message: `You have a ${existsInCart.quantity} and you want to add ${quantity} but the avilibale is ${product.stock}`,
+        message: "Low Stock",
       };
     }
     cart.totalAmount += quantity * product.price;
     existsInCart.unitPrice += quantity;
-    return "sucsesc";
+    return { statusCode: 201, message: "Successfully Add The Product To cart" };
   }
 
   if (product.stock < quantity) {
-    return "The quantity error";
+    return { statusCode: 409, message: "Low Stock" };
   }
 
   cart.items.push({ product: productId, unitPrice: product.price, quantity });
 
   cart.totalAmount += product.price * quantity;
 
-  const updateCart = await cart.save();
+  await cart.save();
 
-  return { message: "succsec", dsa: updateCart };
+  return { message: "Successfully Add The Product To cart", statusCode: 201 };
 };
 
 interface UpdateQuantityInCart {
@@ -92,18 +93,18 @@ export const updateQuantityInCart = async ({
   );
 
   if (!existsInCart) {
-    return "Error";
+    return { statusCode: 404, message: "Please Try Again" };
   }
   const product = await productModel.findById(productId);
 
   if (!product) {
-    return "Please check the product";
+    return { statusCode: 404, message: "We Not Found The Product" };
   }
 
   if (quantity > product.stock) {
     return {
       statusCode: 400,
-      message: `You have a ${existsInCart.quantity} and you want to add ${quantity} but the avilibale is ${product.stock}`,
+      message: "Low Stock",
     };
   }
 
@@ -123,9 +124,9 @@ export const updateQuantityInCart = async ({
 
   cart.totalAmount = total;
 
-  const updateCart = await cart.save();
+  await cart.save();
 
-  return { data: updateCart, statusCode: 201 };
+  return { message: "Quantity Updated Successfully", statusCode: 201 };
 };
 
 interface DeleteItemOfCart {
@@ -144,12 +145,12 @@ export const deleteItemOfCart = async ({
   );
 
   if (!existsInCart) {
-    return "Error";
+    return { statusCode: 404, message: "The Product Not Found In Cart" };
   }
   const product = await productModel.findById(productId);
 
   if (!product) {
-    return "Please check the product";
+    return { message: "Please check the product", statusCode: 404 };
   }
 
   const otherCartItems = cart.items.filter(
@@ -166,7 +167,7 @@ export const deleteItemOfCart = async ({
 
   const deleteitem = await cart.save();
 
-  return { data: deleteitem, statusCode: 200}
+  return { message: "The Item Was Deleted Successfully", statusCode: 200 };
 };
 interface DeleteAllItemsOfCart {
   userId: string;
@@ -177,11 +178,52 @@ export const deleteAllItemsOfCart = async ({
 }: DeleteAllItemsOfCart) => {
   const cart = await getActiveCartForUser({ userId });
 
-
   cart.totalAmount = 0;
   cart.items = [];
 
   const deleteitem = await cart.save();
 
-  return { data: deleteitem, statusCode: 200}
+  return { message: "The Cart Clear Successfully", statusCode: 200 };
+};
+
+interface Checkout {
+  userId: string;
+  address: string;
+}
+
+export const Checkout = async ({ userId, address }: Checkout) => {
+  const cart = await getActiveCartForUser({ userId });
+
+  const orderItems: IOrderItem[] = [];
+
+  for (const item of cart.items) {
+    const product = await productModel.findById(item.product);
+
+    if (!product) {
+      return { message: "Please check the product", statusCode: 404 };
+    }
+
+    const orderItem: IOrderItem = {
+      productImage: product.image,
+      productTitle: product.title,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    };
+    orderItems.push(orderItem);
+  }
+
+  const order = await orderModel.create({
+    orderItems,
+    total: cart.totalAmount,
+    address,
+    userId,
+  });
+
+  await order.save();
+
+  cart.status = "completed";
+
+  await cart.save();
+
+  return { statusCode: 201, message: "The Order Was Completed Successfully" };
 };
