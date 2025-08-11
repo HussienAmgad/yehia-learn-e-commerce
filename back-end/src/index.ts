@@ -4,16 +4,16 @@ import mongoose from "mongoose";
 import userRouter from "./routes/userRouter.js";
 import productRouter from "./routes/productRouter.js";
 import cartRout from "./routes/cartRouter.js";
-// import cors from "cors";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 const port = 5000;
 
-// app.use(cors({
-//     origin: "http://localhost:5173"
-// }));
+app.use(cors({
+    origin: "http://localhost:5173"
+}));
 app.use(express.json());
 
 mongoose
