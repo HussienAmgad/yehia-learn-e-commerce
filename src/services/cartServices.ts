@@ -74,4 +74,54 @@ export const addItemToCart = async ({
   return { message: "succsec", dsa: updateCart };
 };
 
-interface 
+interface UpdateQuantityInCart {
+  userId: string;
+  productId: string;
+  quantity: number;
+}
+
+export const updateQuantityInCart = async ({
+  userId,
+  productId,
+  quantity,
+}: UpdateQuantityInCart) => {
+  const cart = await getActiveCartForUser({ userId });
+
+  const existsInCart = cart.items.find(
+    (p) => p.product.toString() === productId
+  );
+  
+  if (!existsInCart) {
+    return "Error";
+  }
+  const product = await productModel.findById(productId);
+
+  if (!product) {
+    return "Please check the product";
+  }
+
+  if (quantity > product.stock) {
+    return {
+      statusCode: 400,
+      message: `You have a ${existsInCart.quantity} and you want to add ${quantity} but the avilibale is ${product.stock}`,
+    };
+  }
+
+  existsInCart.quantity = quantity;
+  existsInCart.unitPrice = quantity * product.price;
+
+  const otherCartItems = cart.items.filter((p) => p.product.toString() !== productId);
+
+  let total = otherCartItems.reduce((sum, product) => {
+    sum += product.quantity * product.unitPrice;
+    return sum;
+  }, 0)
+
+  total += existsInCart.quantity * existsInCart.unitPrice;
+
+  cart.totalAmount = total
+
+  const updateCart = await cart.save();
+
+  return { data: updateCart, statusCode: 201}
+};
