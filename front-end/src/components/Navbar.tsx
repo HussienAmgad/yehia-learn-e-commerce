@@ -1,5 +1,12 @@
+import { useAuth } from "../context/Auth/AuthContext"
 
 export default function Navbar() {
+    
+    const { name, email, token } = useAuth()
+
+    console.log("from NavBar", {name, email, token});
+    
+
     return (
 
         <nav className="bg-white border-gray-200 dark:bg-gray-900">
