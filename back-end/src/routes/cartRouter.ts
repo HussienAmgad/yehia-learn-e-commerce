@@ -6,6 +6,7 @@ import {
   deleteItemOfCart,
   deleteAllItemsOfCart,
   Checkout,
+  GetOrders,
 } from "../services/cartServices.js";
 import validateJWT from "../middlewares/validateJWT.js";
 import type { ExtendRequest } from "../types/extendedRequest.js";
@@ -16,7 +17,7 @@ route.get("/", validateJWT, async (req: ExtendRequest, res) => {
   try {
     const userId = req.user._id;
     const cart = await getActiveCartForUser({ userId });
-    res.status(200).send({ message: "The Get Respons Succsses" });
+    res.status(200).send(cart);
   } catch (error) {
     res.status(500).send("Somthing went wrong!");
   }
@@ -79,6 +80,16 @@ route.post("/checkout", validateJWT, async (req: ExtendRequest, res) => {
     const { address } = req.body;
     const response = await Checkout({ userId, address });
     res.status(response.statusCode).send({ message: response.message });
+  } catch (error) {
+    res.status(500).send("Somthing went wrong!");
+  }
+});
+
+route.get("/checkout", validateJWT, async (req: ExtendRequest, res) => {
+  try {
+    const userId = req?.user?._id;
+    const response = await GetOrders({ userId });
+    res.status(response.statusCode).send({ data: response.data });
   } catch (error) {
     res.status(500).send("Somthing went wrong!");
   }

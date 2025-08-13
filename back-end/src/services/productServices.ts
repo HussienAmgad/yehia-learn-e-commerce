@@ -32,3 +32,15 @@ export const getAllProducts = async () => {
   }
   return { statusCode: 200, message: "Get All Products Successfully", data: products };
 };
+
+interface GetProduct {
+  id: string;
+}
+
+export const getProduct = async ({ id }: GetProduct) => {
+  const product = await productModel.findById(id);
+  if (!product) {
+    return { statusCode: 404, message: "No products found" };
+  }
+  return { statusCode: 200, message: "Get Product Successfully", data: product };
+};

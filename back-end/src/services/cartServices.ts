@@ -58,7 +58,8 @@ export const addItemToCart = async ({
       };
     }
     cart.totalAmount += quantity * product.price;
-    existsInCart.unitPrice += quantity;
+    existsInCart.quantity += quantity;
+    await cart.save();
     return { statusCode: 201, message: "Successfully Add The Product To cart" };
   }
 
@@ -194,6 +195,10 @@ interface Checkout {
 export const Checkout = async ({ userId, address }: Checkout) => {
   const cart = await getActiveCartForUser({ userId });
 
+  if (cart.items.length === 0) {
+    return { message: "Please Add Products In Cart", statusCode: 404 };
+  }
+
   const orderItems: IOrderItem[] = [];
 
   for (const item of cart.items) {
@@ -227,3 +232,15 @@ export const Checkout = async ({ userId, address }: Checkout) => {
 
   return { statusCode: 201, message: "The Order Was Completed Successfully" };
 };
+
+interface getOrders {
+  userId: string;
+}
+
+export const GetOrders = async ({ userId }: getOrders) => {
+  try {
+    return { data: await orderModel.find({ userId }), statusCode: 200 }
+  } catch (error) {
+    return { data: "Please Try Again", statusCode: 404 }
+  }
+}

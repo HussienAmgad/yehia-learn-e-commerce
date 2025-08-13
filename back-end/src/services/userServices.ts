@@ -69,6 +69,7 @@ export const login = async ({ email, password }: LoginParams) => {
   if (passwordMatch) {
     return {
       message: "Account login successfully",
+      name: `${findUser.firstName} ${findUser.lastName}`,
       token: generateJWT({
         firstName: findUser.firstName,
         lastName: findUser.lastName,
@@ -82,5 +83,5 @@ export const login = async ({ email, password }: LoginParams) => {
 };
 
 const generateJWT = (data: any) => {
-  return jwt.sign(data, process.env.JWT_secret || '');
+  return jwt.sign(data, process.env.JWT_secret || "");
 };

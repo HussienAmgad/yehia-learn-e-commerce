@@ -22,6 +22,7 @@ route.post("/login", async (req, res) => {
     const result = await login({ email, password });
     res.status(result.statusCode).send({
       message: result.message,
+      name: result.name,
       token: result.token,
     });
   } catch (error) {

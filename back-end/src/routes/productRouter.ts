@@ -1,5 +1,5 @@
 import express from "express";
-import { addProduct, getAllProducts } from "../services/productServices.js";
+import { addProduct, getAllProducts, getProduct } from "../services/productServices.js";
 
 const route = express.Router();
 
@@ -16,6 +16,18 @@ route.post("/addproduct", async (req, res) => {
 route.get("/", async (req, res) => {
   try {
     const result = await getAllProducts();
+    res
+      .status(result.statusCode)
+      .send({ message: result.message, data: result.data });
+  } catch (error) {
+    res.status(500).send("Somthing went wrong!");
+  }
+});
+
+route.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await getProduct({ id });
     res
       .status(result.statusCode)
       .send({ message: result.message, data: result.data });

@@ -12,6 +12,8 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     const [name, setName] = useState<string | null>(null)
     const [email, setEmail] = useState<string | null>(null)
     const [token, setToken] = useState<string | null>(localStorage.getItem('userToken'))
+    const isAuthorization = !!token
+    
 
     useEffect(() => {
         const localtoken = localStorage.getItem('userToken');
@@ -21,10 +23,9 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
         if (localtoken) {
             setToken(localtoken);
             const decoded = jwtDecode<jwtPayload>(localtoken);
-            setName(decoded.firstName+decoded.lastName);
+            setName(decoded.firstName + decoded.lastName);
             setEmail(decoded.email);
             console.log(decoded);
-            
         }
     }, []);
 
@@ -35,8 +36,16 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
         localStorage.setItem("userToken", token);
     }
 
+    const logout = () => {
+        setName(null);
+        setEmail(null);
+        setToken(null);
+        localStorage.removeItem("userToken");
+        navigate("/");
+    }
+
     return (
-        <AuthContext.Provider value={{ name, email, token, login }}>
+        <AuthContext.Provider value={{ name, email, token, login, isAuthorization, logout }}>
             {children}
         </AuthContext.Provider>
     )
